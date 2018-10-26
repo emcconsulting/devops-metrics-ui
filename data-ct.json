@@ -1,0 +1,14 @@
+[
+    {
+        "projectName": "ACT",
+        "cycleTime": 15
+    },
+    {
+        "projectName": "smart city",
+        "cycleTime": 3
+    },
+    {
+        "projectName": "Telstra",
+        "cycleTime": 27
+    }
+]

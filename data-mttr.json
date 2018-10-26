@@ -1,0 +1,14 @@
+[
+    {
+        "projectKey": "ATP",
+        "avgMeanTime": 9728,
+        "minMeanTime": 1780,
+        "maxMeanTime": 17288
+    },
+    {
+        "projectKey": "ATR",
+        "avgMeanTime": 18288,
+        "minMeanTime": 15288,
+        "maxMeanTime": 19888
+    }
+]

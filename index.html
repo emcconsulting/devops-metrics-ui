@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<style>
+
+.chart {
+  padding-bottom: 35px;
+  border: 1px solid black;
+  padding-top: 10px;
+  background-color: transparent;
+  background-color: ligh;
+}
+
+.chart .legend {
+  fill: black;
+  font: 14px sans-serif;
+  font-weight: bold;
+  text-anchor: start;
+  font-size: 12px;
+}
+
+.chart text {
+  fill: white;
+  font: 10px sans-serif;
+  text-anchor: end;
+}
+
+.chart .description {
+  fill: black;
+  font: 12px sans-serif;
+  text-anchor: start;
+}
+
+.chart .label {
+  fill: black;
+  font: 14px sans-serif;
+  text-anchor: end;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+</style>
+
+
+<svg class="chart" id="chart1"></svg>
+<svg class="chart" id="chart2"></svg>
+<svg class="chart" id="chart3"></svg>
+<svg class="chart" id="chart4"></svg>
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+d3.json("http://192.168.140.133:8080/_code/grouped-horizontal-barchart/data-ct.json", function(error, responseData) {
+   if (error) throw error;
+   data = formatForAvgCycleTimeBarChart(responseData); 
+
+   var chartWidth       = 300,
+    barHeight        = 20,
+    groupHeight      = barHeight * data.series.length,
+    gapBetweenGroups = 10,
+    spaceForLabels   = 150,
+    spaceForLegend   = 150;
+
+    // Zip the series data together (first values, second values, etc.)
+    var zippedData = [];
+    for (var i=0; i<data.labels.length; i++) {
+      for (var j=0; j<data.series.length; j++) {
+        zippedData.push(data.series[j].values[i]);
+      }
+    }
+
+    // Color scale
+    var color = d3.scale.category20();
+    var chartHeight = barHeight * zippedData.length + gapBetweenGroups * data.labels.length;
+
+    var x = d3.scale.linear()
+        .domain([0, d3.max(zippedData)])
+        .range([0, chartWidth]);
+
+    var y = d3.scale.linear()
+        .range([chartHeight + gapBetweenGroups, 0]);
+
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .tickFormat('')
+        .tickSize(0)
+        .orient("left");
+
+    // Specify the chart area and dimensions
+    var chart = d3.select("#chart1")
+        .attr("width", spaceForLabels + chartWidth + spaceForLegend)
+        .attr("height", chartHeight)
+        .attr("fill", "blue");
+
+    // Create bars
+    var bar = chart.selectAll("g")
+        .data(zippedData)
+        .enter().append("g")
+        .attr("transform", function(d, i) {
+          return "translate(" + spaceForLabels + "," + (i * barHeight + gapBetweenGroups * (0.5 + Math.floor(i/data.series.length))) + ")";
+        });
+
+    // Create rectangles of the correct width
+    bar.append("rect")
+        .attr("fill", function(d,i) { return color(i % data.series.length); })
+        .attr("class", "bar")
+        .attr("width", x)
+        .attr("height", barHeight - 1);
+
+    // Add text label in bar
+    bar.append("text")
+        .attr("x", function(d) { return x(d) - 3; })
+        .attr("y", barHeight / 2)
+        .attr("fill", "red")
+        .attr("dy", ".35em")
+        .text(function(d) { return d; });
+
+    // Draw labels
+    bar.append("text")
+        .attr("class", "label")
+        .attr("x", function(d) { return - 10; })
+        .attr("y", groupHeight / 2)
+        .attr("dy", ".35em")
+        .text(function(d,i) {
+          if (i % data.series.length === 0)
+            return data.labels[Math.floor(i/data.series.length)];
+          else
+            return ""});
+
+    chart.append("g")
+          .attr("class", "y axis")
+          .attr("transform", "translate(" + spaceForLabels + ", " + -gapBetweenGroups/2 + ")")
+          .call(yAxis);
+
+    // Draw legend
+    var legendSpacing  = 4;
+
+    var legend = chart.selectAll('.legend')
+        .data(data.series)
+        .enter()
+        .append('g')
+        .attr('transform', function (d, i) {
+            var height = legendSpacing;
+            var offset = -gapBetweenGroups/2;
+            var horz = spaceForLabels + chartWidth + 40;
+            var vert = i * height - offset;
+            return 'translate(' + horz + ',' + vert + ')';
+        });
+
+    legend.append('text')
+        .attr('class', 'legend')
+        .attr('x', -chartWidth)
+        .attr('y', chartHeight + 20)
+        .text(function (d) { return d.label; });
+
+});
+
+
+d3.json("http://192.168.140.133:8080/_code/grouped-horizontal-barchart/data-df.json", function(error, responseData) {
+   if (error) throw error;
+   data2 = formatForDeploymentFrequencyBarChart(responseData); 
+
+    // var data2 = {
+    //   labels: [
+    //     'Project #1', 'Project #2', 'Project #3',
+    //     'Project #4'
+    //   ],
+    //   series: [
+    //     {
+    //       label: 'Deployment Frequency (In Days)',
+    //       values: [0.6, 0.35, 0.02, 0.12],
+    //       description: [" 6 days", "4 weeks", "1 year 2 months", "2 months"]
+    //     },]
+    // };
+
+    var chartWidth2       = 300,
+        barHeight2        = 20,
+        groupHeight2      = barHeight2 * data2.series.length,
+        gapBetweenGroups2 = 10,
+        spaceForLabels2   = 150,
+        spaceForLegend2   = 150;
+
+    // Zip the series data together (first values, second values, etc.)
+    var zippedData2 = [];
+    for (var i=0; i<data2.labels.length; i++) {
+      for (var j=0; j<data2.series.length; j++) {
+        zippedData2.push(data2.series[j].values[i]);
+      }
+    }
+
+    // Color scale
+    var color2 = d3.scale.category20();
+    var chartHeight2 = barHeight2 * zippedData2.length + gapBetweenGroups2 * data2.labels.length;
+
+    var x2 = d3.scale.linear()
+        .domain([0, d3.max(zippedData2)])
+        .range([0, chartWidth2]);
+
+    var y2 = d3.scale.linear()
+        .range([chartHeight2 + gapBetweenGroups2, 0]);
+
+    var yAxis2 = d3.svg.axis()
+        .scale(y2)
+        .tickFormat('')
+        .tickSize(0)
+        .orient("left");
+
+    // Specify the chart area and dimensions
+    var chart2 = d3.select("#chart2")
+        .attr("width", spaceForLabels2 + chartWidth2 + spaceForLegend2)
+        .attr("height", chartHeight2);
+
+    // Create bars
+    var bar2 = chart2.selectAll("g")
+        .data(zippedData2)
+        .enter().append("g")
+        .attr("transform", function(d, i) {
+          return "translate(" + spaceForLabels2 + "," + (i * barHeight2 + gapBetweenGroups2 * (0.5 + Math.floor(i/data2.series.length))) + ")";
+        });
+
+    // Create rectangles of the correct width
+    bar2.append("rect")
+        .attr("fill", function(d,i) { return color2(i % data2.series.length); })
+        .attr("class", "bar")
+        .attr("width", x2)
+        .attr("height", barHeight2 - 1);
+
+    // Add text label in bar
+    bar2.append("text")
+        .attr("x", function(d) { return x2(d) + 7; })
+        .attr("y", barHeight2 / 2)
+        .attr("class", "description")
+        .attr("fill", "red")
+        .attr("dy", ".35em")
+        .text(function(d, i) { return data2.series[0].description[i]; });
+
+    // Draw labels
+    bar2.append("text")
+        .attr("class", "label")
+        .attr("x", function(d) { return - 10; })
+        .attr("y", groupHeight2 / 2)
+        .attr("dy", ".35em")
+        .text(function(d,i) {
+          if (i % data2.series.length === 0)
+            return data2.labels[Math.floor(i/data2.series.length)];
+          else
+            return ""});
+
+    chart2.append("g")
+          .attr("class", "y axis")
+          .attr("transform", "translate(" + spaceForLabels2 + ", " + -gapBetweenGroups2/2 + ")")
+          .call(yAxis2);
+
+    // Draw legend
+    var legendSpacing2  = 4;
+
+    var legend2 = chart2.selectAll('.legend')
+        .data(data2.series)
+        .enter()
+        .append('g')
+        .attr('transform', function (d, i) {
+            var height2 = legendSpacing2;
+            var offset2 = -gapBetweenGroups2/2;
+            var horz2 = spaceForLabels2 + chartWidth2 + 40;
+            var vert2 = i * height2 - offset2;
+            return 'translate(' + horz2 + ',' + vert2 + ')';
+        });
+
+    legend2.append('text')
+        .attr('class', 'legend')
+        .attr('x', -chartWidth2)
+        .attr('y', chartHeight2 + 20)
+        .text(function (d) { return d.label; });
+});
+
+
+
+// Mean time to recovery
+d3.json("http://192.168.140.133:8080/_code/grouped-horizontal-barchart/data-mttr.json", function(error, dataResponse) {
+   if (error) throw error;
+   var data3 = formatForMTTRBarChart(dataResponse);
+
+   console.log(data3);
+
+   var chartWidth3    = 300,
+    barHeight3        = 20,
+    groupHeight3      = barHeight3 * data3.series.length,
+    gapBetweenGroups3 = 10,
+    spaceForLabels3   = 150,
+    spaceForLegend3   = 150;
+
+    // Zip the series data together (first values, second values, etc.)
+    var zippedData3 = [];
+    for (var i=0; i<data3.labels.length; i++) {
+      for (var j=0; j<data3.series.length; j++) {
+        zippedData3.push(data3.series[j].values[i]);
+      }
+    }
+
+    // Color scale
+    var color3 = d3.scale.category20();
+    var chartHeight3 = barHeight3 * zippedData3.length + gapBetweenGroups3 * data3.labels.length;
+
+    var x3 = d3.scale.linear()
+        .domain([0, d3.max(zippedData3)])
+        .range([0, chartWidth3]);
+
+    var y3 = d3.scale.linear()
+        .range([chartHeight3 + gapBetweenGroups3, 0]);
+
+    var yAxis3 = d3.svg.axis()
+        .scale(y3)
+        .tickFormat('')
+        .tickSize(0)
+        .orient("left");
+
+    // Specify the chart area and dimensions
+    var chart3 = d3.select("#chart3")
+        .attr("width", spaceForLabels3 + chartWidth3 + spaceForLegend3)
+        .attr("height", chartHeight3);
+
+    // Create bars
+    var bar3 = chart3.selectAll("g")
+        .data(zippedData3)
+        .enter().append("g")
+        .attr("transform", function(d, i) {
+          return "translate(" + spaceForLabels3 + "," + (i * barHeight3 + gapBetweenGroups3 * (0.5 + Math.floor(i/data3.series.length))) + ")";
+        });
+
+    // Create rectangles of the correct width
+    bar3.append("rect")
+        .attr("fill", function(d,i) { return color3(i % data3.series.length); })
+        .attr("class", "bar")
+        .attr("width", x3)
+        .attr("height", barHeight3 - 1);
+
+    // Add text label in bar
+    bar3.append("text")
+        .attr("x", function(d) { return x3(d) - 3; })
+        .attr("y", barHeight3 / 2)
+        .attr("fill", "red")
+        .attr("dy", ".35em")
+        .text(function(d) { return d; });
+
+    // Draw labels
+    bar3.append("text")
+        .attr("class", "label")
+        .attr("x", function(d) { return - 10; })
+        .attr("y", groupHeight3 / 2)
+        .attr("dy", ".35em")
+        .text(function(d,i) {
+          if (i % data3.series.length === 0)
+            return data3.labels[Math.floor(i/data3.series.length)];
+          else
+            return ""});
+
+    chart3.append("g")
+          .attr("class", "y axis")
+          .attr("transform", "translate(" + spaceForLabels3 + ", " + -gapBetweenGroups3/2 + ")")
+          .call(yAxis3);
+
+    // Draw legend
+    var legendRectSize3 = 18,
+        legendSpacing3  = 4;
+
+    var legend3 = chart3.selectAll('.legend')
+        .data(data3.series)
+        .enter()
+        .append('g')
+        .attr('transform', function (d, i) {
+            var height3 = legendRectSize3 + legendSpacing3;
+            var offset3 = -gapBetweenGroups3/2;
+            var horz3 = spaceForLabels3 + chartWidth3 + 40 - legendRectSize3;
+            var vert3 = i * height3 - offset3;
+            return 'translate(' + horz3 + ',' + vert3 + ')';
+        });
+
+    legend3.append('rect')
+        .attr('width', legendRectSize3)
+        .attr('height', legendRectSize3)
+        .style('fill', function (d, i) { return color3(i); })
+        .style('stroke', function (d, i) { return color3(i); });
+
+    legend3.append('text')
+        .attr('class', 'legend')
+        .attr('x', legendRectSize3 + legendSpacing3)
+        .attr('y', legendRectSize3 - legendSpacing3)
+        .text(function (d) { return d.label; });
+
+
+    // Draw Chart Label
+    var label3 = chart3.append('text')
+        .attr('class', 'legend')
+        .attr('x', chartWidth3 - 100)
+        .attr('y', chartHeight3 + 25)
+        .text(function () { return "MTTR (In Days)"; });
+});
+
+
+// Lead Time
+d3.json("http://192.168.140.133:8080/_code/grouped-horizontal-barchart/data-lt.json", function(error, responseData) {
+   if (error) throw error;
+   var data4 = formatForLeadTimeBarChart(responseData);
+
+   var chartWidth4       = 300,
+        barHeight4        = 20,
+        groupHeight4      = barHeight4 * data4.series.length,
+        gapBetweenGroups4 = 10,
+        spaceForLabels4   = 150,
+        spaceForLegend4   = 150;
+
+    // Zip the series data together (first values, second values, etc.)
+    var zippedData4 = [];
+    for (var i=0; i<data4.labels.length; i++) {
+      for (var j=0; j<data4.series.length; j++) {
+        zippedData4.push(data4.series[j].values[i]);
+      }
+    }
+
+    // Color scale
+    var color4 = d3.scale.category20();
+    var chartHeight4 = barHeight4 * zippedData4.length + gapBetweenGroups4 * data4.labels.length;
+
+    var x4 = d3.scale.linear()
+        .domain([0, d3.max(zippedData4)])
+        .range([0, chartWidth4]);
+
+    var y4 = d3.scale.linear()
+        .range([chartHeight4 + gapBetweenGroups4, 0]);
+
+    var yAxis4 = d3.svg.axis()
+        .scale(y4)
+        .tickFormat('')
+        .tickSize(0)
+        .orient("left");
+
+    // Specify the chart area and dimensions
+    var chart4 = d3.select("#chart4")
+        .attr("width", spaceForLabels4 + chartWidth4 + spaceForLegend4)
+        .attr("height", chartHeight4);
+
+    // Create bars
+    var bar4 = chart4.selectAll("g")
+        .data(zippedData4)
+        .enter().append("g")
+        .attr("transform", function(d, i) {
+          return "translate(" + spaceForLabels4 + "," + (i * barHeight4 + gapBetweenGroups4 * (0.5 + Math.floor(i/data4.series.length))) + ")";
+        });
+
+    // Create rectangles of the correct width
+    bar4.append("rect")
+        .attr("fill", function(d,i) { return color4(i % data4.series.length); })
+        .attr("class", "bar")
+        .attr("width", x4)
+        .attr("height", barHeight4 - 1);
+
+    // Add text label in bar
+    bar4.append("text")
+        .attr("x", function(d) { return x4(d) - 3; })
+        .attr("y", barHeight4 / 2)
+        .attr("fill", "red")
+        .attr("dy", ".35em")
+        .text(function(d) { return d; });
+
+    // Draw labels
+    bar4.append("text")
+        .attr("class", "label")
+        .attr("x", function(d) { return - 10; })
+        .attr("y", groupHeight4 / 2)
+        .attr("dy", ".35em")
+        .text(function(d,i) {
+          if (i % data4.series.length === 0)
+            return data4.labels[Math.floor(i/data4.series.length)];
+          else
+            return ""});
+
+    chart4.append("g")
+          .attr("class", "y axis")
+          .attr("transform", "translate(" + spaceForLabels4 + ", " + -gapBetweenGroups4/2 + ")")
+          .call(yAxis4);
+
+    // Draw legend
+    var legendSpacing4  = 4;
+
+    var legend4 = chart4.selectAll('.legend')
+        .data(data4.series)
+        .enter()
+        .append('g')
+        .attr('transform', function (d, i) {
+            var height4 = legendSpacing4;
+            var offset4 = -gapBetweenGroups4/2;
+            var horz4 = spaceForLabels4 + chartWidth4 + 40;
+            var vert4 = i * height4 - offset4;
+            return 'translate(' + horz4 + ',' + vert4 + ')';
+        });
+
+    legend4.append('text')
+        .attr('class', 'legend')
+        .attr('x', -chartWidth4)
+        .attr('y', chartHeight4 + 20)
+        .text(function (d) { return d.label; });
+
+  });
+
+  function formatForAvgCycleTimeBarChart(responseData){
+
+        var obj = new Object();
+        obj.labels = [];
+        obj.series = [];
+        obj.series[0] = new Object();
+
+        obj.series[0].values = [];
+        obj.series[0].description = [];
+
+        for (i = 0; i < responseData.length; i++) {
+            obj.labels[i] = responseData[i].projectName;
+            obj.series[0].label = "Average Cycle Time (In Days)";
+            obj.series[0].values[i] = responseData[i].cycleTime;
+        }
+
+        return obj;
+  }
+
+  function formatForDeploymentFrequencyBarChart(responseData){
+
+    var obj = new Object();
+    obj.labels = [];
+    obj.series = [];
+    obj.series[0] = new Object();
+
+    obj.series[0].values = [];
+    obj.series[0].description = [];
+
+    for (i = 0; i < responseData.length; i++) {
+      obj.labels[i] = responseData[i].projectName;
+      obj.series[0].label = "Deployment Frequency";
+      obj.series[0].values[i] = responseData[i].frequencyPerYear;
+      obj.series[0].description[i] = responseData[i].frequency;
+    }
+
+    return obj;
+  }
+
+  function formatForMTTRBarChart(responseData){
+
+    var obj = new Object();
+    obj.labels = [];
+    obj.series = [3];
+    obj.series[0] = new Object();
+    obj.series[1] = new Object();
+    obj.series[2] = new Object();
+
+    obj.series[0].values = [];
+    obj.series[1].values = [];
+    obj.series[2].values = [];
+
+    for (i = 0; i < responseData.length; i++) {
+        obj.labels[i] = responseData[i].projectKey;
+        obj.series[0].label = "Minimum";
+        obj.series[1].label = "Average";
+        obj.series[2].label = "Maximum";
+
+        obj.series[0].values[i] = responseData[i].minMeanTime;
+        obj.series[1].values[i] = responseData[i].avgMeanTime;
+        obj.series[2].values[i] = responseData[i].maxMeanTime;
+    }
+
+    return obj;
+  }
+
+  function formatForLeadTimeBarChart(responseData){
+
+    var obj = new Object();
+        obj.labels = [];
+        obj.series = [];
+        obj.series[0] = new Object();
+
+        obj.series[0].values = [];
+        obj.series[0].description = [];
+
+        for (i = 0; i < responseData.length; i++) {
+            obj.labels[i] = responseData[i].projectName;
+            obj.series[0].label = "Lead Time (In Days)";
+            obj.series[0].values[i] = responseData[i].leadTime;
+        }
+
+        return obj;
+  }
+
+
+</script>
