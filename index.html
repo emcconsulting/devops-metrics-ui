@@ -59,7 +59,7 @@
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
 
-d3.json("http://192.168.140.133:8080/_code/grouped-horizontal-barchart/data-ct.json", function(error, responseData) {
+d3.json("http://localhost:8080/data-ct.json", function(error, responseData) {
    if (error) throw error;
    data = formatForAvgCycleTimeBarChart(responseData); 
 
@@ -165,7 +165,7 @@ d3.json("http://192.168.140.133:8080/_code/grouped-horizontal-barchart/data-ct.j
 });
 
 
-d3.json("http://192.168.140.133:8080/_code/grouped-horizontal-barchart/data-df.json", function(error, responseData) {
+d3.json("http://localhost:8080/data-df.json", function(error, responseData) {
    if (error) throw error;
    data2 = formatForDeploymentFrequencyBarChart(responseData); 
 
@@ -285,7 +285,7 @@ d3.json("http://192.168.140.133:8080/_code/grouped-horizontal-barchart/data-df.j
 
 
 // Mean time to recovery
-d3.json("http://192.168.140.133:8080/_code/grouped-horizontal-barchart/data-mttr.json", function(error, dataResponse) {
+d3.json("http://localhost:8080/data-mttr.json", function(error, dataResponse) {
    if (error) throw error;
    var data3 = formatForMTTRBarChart(dataResponse);
 
@@ -407,7 +407,7 @@ d3.json("http://192.168.140.133:8080/_code/grouped-horizontal-barchart/data-mttr
 
 
 // Lead Time
-d3.json("http://192.168.140.133:8080/_code/grouped-horizontal-barchart/data-lt.json", function(error, responseData) {
+d3.json("http://localhost:8080/data-lt.json", function(error, responseData) {
    if (error) throw error;
    var data4 = formatForLeadTimeBarChart(responseData);
 
